@@ -8,36 +8,36 @@ const port = 3333;
 const server = express();
 server.use(express.json());
 
-server.post('/api/users', (req,res)=>{
-    if(!typeof req.body.name || req.body.name =="" ||
-    !typeof req.body.bio || req.body.bio !="")
-        return res.status(400, "errorMessage: Please provide name and bio for the user.");
-}), (req, res) => {
+server.post('/api/users', (req, res) => {
     const { name, bio } = req.body;
+    if (bio === undefined || name === undefined ||
+        bio === "" || name === "")
+        return res.status(400).json({ errorMessage: "Please provide name and bio for the user." });
+
     console.log({
         name: name,
         bio: bio,
-    })
+    });
     db.insert({
         name: name,
         bio: bio
     })
         .then((user) => {
-            res.status(201).json({ 'success': true, user:user })
+            res.status(201).json({ 'success': true, user: user })
         })
         .catch(() => {
-            res.status(500).json({ 'success': false });
+            res.status(500).json({ error : "There was an error while saving the user to the database"  });
         });
-}
-);
+
+});
 
 server.get('/api/users', [], (req, res) => {
     db.find()
         .then((data) => {
-            res.status(200).json({ 'success': true, users: data })
+            res.status(404).json({ 'success': true, users: data })
         })
         .catch(() => {
-            res.status(500).json({ 'success': false });
+            res.status(500).json({ error: "The users information could not be retrieved." });
         });
 });
 
@@ -82,10 +82,10 @@ server.put('/api/users/:id', [], (req, res) => {
     console.log(id);
     db.findById(id).then((user) => {
         db.update(id, obj).then((data) => {
-x = { }
+            x = {}
             if (typeof data && data == true) {
-                const updateUser = {...user,...obj};
-                res.status(200).json({ 'success': true, user:{...updateUser} });
+                const updateUser = { ...user, ...obj };
+                res.status(200).json({ 'success': true, user: { ...updateUser } });
             }
             else {
                 res.status(403).json({ 'success': false });
